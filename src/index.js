@@ -17,4 +17,4 @@ app.use((error, req, res, next) => {
   res.status(500).json({ mensagem: error.message });
 });
 
-app.listen(3000, () => console.log('Server started at http://localhost:3000'));
+app.listen(process.env.PORT, () => console.log('Server started at http://localhost:3000'));
