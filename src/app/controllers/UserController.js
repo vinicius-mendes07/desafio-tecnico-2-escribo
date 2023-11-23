@@ -6,17 +6,24 @@ class UserController {
   index(req, res) {
     const users = UserRepository.findAll();
 
-    res.send(users);
+    res.json(users);
   }
 
   show(req, res) {
     const { id } = req.params;
-    return res.send(id);
+
+    const user = UserRepository.findById(Number(id));
+
+    if (!user) {
+      return res.status(400).json({ mensagem: 'Usuário não encotrado' });
+    }
+
+    return res.json(user);
     //
   }
 
   // criação de usuário (sign up)
-  store(req, res) {
+  async store(req, res) {
     const {
       nome, email, senha, telefones,
     } = req.body;
@@ -31,7 +38,7 @@ class UserController {
       return res.status(400).json({ mensagem: 'E-mail já existente.' });
     }
 
-    const user = UserRepository.create({
+    const user = await UserRepository.create({
       nome,
       email,
       senha,

@@ -24,18 +24,22 @@ class UserRepository {
     return userByEmail;
   }
 
-  create({
+  findById(id) {
+    const userById = users.find((user) => user.id === id);
+
+    return userById;
+  }
+
+  async create({
     nome, email, senha, telefones,
   }) {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(senha, salt);
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(senha, salt);
 
     const id = Math.random();
 
     const token = jwt.sign({
       id,
-      email,
-      hash,
     }, secret, { expiresIn: '1m' });
 
     const newUser = {
@@ -47,7 +51,6 @@ class UserRepository {
       data_criacao: new Date(),
       data_atualizacao: new Date(),
       ultimo_login: new Date(),
-      token,
     };
     users.push(newUser);
 
@@ -56,7 +59,7 @@ class UserRepository {
       data_criacao: newUser.data_criacao,
       data_atualizacao: newUser.data_atualizacao,
       ultimo_login: newUser.ultimo_login,
-      token: newUser.token,
+      token,
     };
   }
 
