@@ -1,33 +1,22 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-let users = [
-  {
-    id: Math.random(),
-    nome: 'Vinicius',
-    email: 'vinicius@email.com',
-    senha: '123456',
-    telefones: [{ numero: '123456789', ddd: '11' }],
-  },
-];
-
-const secret = 'secret';
+const db = require('../../database');
 
 class UserRepository {
-  findAll() {
-    return users;
+  async findByEmail(email) {
+    const [row] = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    return row;
   }
 
-  findByEmail(email) {
-    const userByEmail = users.find((user) => user.email === email);
+  async findById(id) {
+    try {
+      const [row] = await db.query('SELECT * FROM users WHERE id = $1', [id]);
 
-    return userByEmail;
-  }
-
-  findById(id) {
-    const userById = users.find((user) => user.id === id);
-
-    return userById;
+      return row;
+    } catch (error) {
+      return null;
+    }
   }
 
   async create({
@@ -36,49 +25,44 @@ class UserRepository {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(senha, salt);
 
-    const id = Math.random();
+    const data_criacao = new Date();
+    const data_atualizacao = new Date();
+    const ultimo_login = new Date();
+
+    const [row] = await db.query(`
+      INSERT INTO users(nome, email, senha, telefones, data_criacao, data_atualizacao, ultimo_login)
+      VALUES($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [nome, email, hash, telefones, data_criacao, data_atualizacao, ultimo_login]);
 
     const token = jwt.sign({
-      id,
-    }, secret, { expiresIn: '1m' });
-
-    const newUser = {
-      id,
-      nome,
-      email,
-      senha: hash,
-      telefones,
-      data_criacao: new Date(),
-      data_atualizacao: new Date(),
-      ultimo_login: new Date(),
-    };
-    users.push(newUser);
+      id: row.id,
+    }, process.env.SECRET, { expiresIn: '1m' });
 
     return {
-      id: newUser.id,
-      data_criacao: newUser.data_criacao,
-      data_atualizacao: newUser.data_atualizacao,
-      ultimo_login: newUser.ultimo_login,
+      id: row.id,
+      data_criacao: row.data_criacao,
+      data_atualizacao: row.data_atualizacao,
+      ultimo_login: row.ultimo_login,
       token,
     };
   }
 
-  updateLogin(email) {
-    const userExists = this.findByEmail(email);
-    if (!userExists) {
+  async updateLogin(email) {
+    const row = await this.findByEmail(email);
+    if (!row) {
       return null;
     }
+    const ultimo_login = new Date();
 
-    userExists.ultimo_login = new Date();
-    users = users.map((user) => {
-      if (userExists.id === user.id) {
-        return {
-          ...userExists,
-        };
-      }
-      return user;
-    });
-    return userExists;
+    const [updatedUser] = await db.query(`
+      UPDATE users
+      SET ultimo_login = $1
+      WHERE id = $2
+      RETURNING *
+    `, [ultimo_login, row.id]);
+
+    return updatedUser;
   }
 }
 

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 
+// verifica se o usuário está autenticado com token válido
 function authService(req, res, next) {
   const { authorization } = req.headers;
   const token = authorization && authorization.split(' ')[1];
@@ -9,7 +10,7 @@ function authService(req, res, next) {
   }
 
   try {
-    const decodedToken = jwt.decode(token, 'secret');
+    const decodedToken = jwt.decode(token, process.env.SECRET);
     if (decodedToken.exp < Math.floor(Date.now() / 1000)) {
       return res.status(400).json({ mensagem: 'Sessão inválida.' });
     }
