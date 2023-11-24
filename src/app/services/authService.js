@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 // verifica se o usuário está autenticado com token válido
 function authService(req, res, next) {
   const { authorization } = req.headers;
+  // separa somente o valor do token do 'Bearer {token}'
   const token = authorization && authorization.split(' ')[1];
 
   if (!token) {

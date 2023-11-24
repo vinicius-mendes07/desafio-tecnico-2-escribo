@@ -3,11 +3,6 @@ const jwt = require('jsonwebtoken');
 const db = require('../../database');
 
 class UserRepository {
-  async findAll() {
-    const rows = await db.query('SELECT * FROM users');
-    return rows;
-  }
-
   async findByEmail(email) {
     const [row] = await db.query('SELECT * FROM users WHERE email = $1', [email]);
 
@@ -42,7 +37,7 @@ class UserRepository {
 
     const token = jwt.sign({
       id: row.id,
-    }, process.env.SECRET, { expiresIn: '1m' });
+    }, process.env.SECRET, { expiresIn: '30m' });
 
     return {
       id: row.id,

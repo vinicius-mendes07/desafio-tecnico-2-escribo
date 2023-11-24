@@ -3,13 +3,7 @@ const jwt = require('jsonwebtoken');
 const UserRepository = require('../repositories/UserRepository');
 
 class UserController {
-  async index(req, res) {
-    const users = await UserRepository.findAll();
-
-    res.json(users);
-  }
-
-  // buscar informações do usuário
+  // buscar informações do usuário quando ele estiver logado
   async show(req, res) {
     const { id } = req.params;
 
@@ -70,7 +64,7 @@ class UserController {
 
     const token = jwt.sign({
       id: user.id,
-    }, process.env.SECRET, { expiresIn: '1m' });
+    }, process.env.SECRET, { expiresIn: '30m' });
 
     const updatedUser = await UserRepository.updateLogin(email);
     if (!updatedUser) {
