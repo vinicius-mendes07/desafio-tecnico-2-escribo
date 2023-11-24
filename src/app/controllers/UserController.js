@@ -3,7 +3,13 @@ const jwt = require('jsonwebtoken');
 const UserRepository = require('../repositories/UserRepository');
 
 class UserController {
-  // buscar informações do usuário quando autenticado
+  async index(req, res) {
+    const users = await UserRepository.findAll();
+
+    res.json(users);
+  }
+
+  // buscar informações do usuário
   async show(req, res) {
     const { id } = req.params;
 
