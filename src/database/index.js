@@ -1,12 +1,19 @@
-const { Client } = require('pg');
+const { Pool } = require('pg');
+require('dotenv').config();
 
-const client = new Client({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: {
+    require: true,
+  },
 });
 
-client.connect();
-
 exports.query = async (query, values) => {
-  const { rows } = await client.query(query, values);
-  return rows;
+  const client = await pool.connect();
+  try {
+    const { rows } = await client.query(query, values);
+    return rows;
+  } finally {
+    client.release();
+  }
 };
